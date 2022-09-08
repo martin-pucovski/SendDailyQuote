@@ -1,8 +1,8 @@
-# ignore venv folder
+# ignore folders
+logs/
+src/__pycache__
 venv/
 
-# ignore secrets.py
+# ignore files
+data/all_quotes.csv
 src/secrets.py
-
-# ignore pycache
-src/__pycache__
