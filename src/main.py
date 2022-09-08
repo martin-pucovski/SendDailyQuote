@@ -81,7 +81,7 @@ def main():
         
     # choose one random quote
     number_of_quotes = len(rows)
-    value = random.randrange(0, number_of_quotes-1)
+    value = random.randrange(0, number_of_quotes)
 
     # build text
     with open(r'data/mail_template.txt', newline='', encoding="utf8") as mail_template:
