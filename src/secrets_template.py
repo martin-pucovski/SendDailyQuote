@@ -1,0 +1,5 @@
+recipient = ""
+smtp_username = ""
+smtp_password = ""
+smtp_server = ""
+smtp_port = ""

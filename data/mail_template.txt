@@ -1,0 +1,9 @@
+Hello,
+
+quote of the day:
+
+{}
+
+Book: {}
+Part: {}
+Chapter: {}

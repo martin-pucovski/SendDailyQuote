@@ -1,0 +1,8 @@
+# ignore venv folder
+venv/
+
+# ignore secrets.py
+src/secrets.py
+
+# ignore pycache
+src/__pycache__
