@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-"""TODO
-
-Write Docstring.
+"""
+Script sends a mail with a daily quote.
 """
 
 __author__ = "Martin Pucovski"
@@ -23,12 +22,13 @@ import secrets
 from email.mime.text import MIMEText
 import csv
 import random
+import os
 
 
 # Create and configure logger
 current_day = datetime.datetime.now().strftime("%Y%m%d")
 
-logging.basicConfig(filename=f"logs\{current_day}_log.log",
+logging.basicConfig(filename=fr"logs\{current_day}_log.log",
                     format='%(asctime)s %(levelname)s %(message)s',
                     filemode='a')
 
@@ -44,11 +44,14 @@ logger.info("Script started")
 # read config.ini file
 logger.info("Reading config")
 config = configparser.ConfigParser()
-config.read('config\config.ini')
+config.read(r'config\config.ini')
 config_default = config['DEFAULT']
 
+# set variable values
+quotes_file = os.path.join('data', config_default['quote_file_name'])
+template_file = os.path.join('data', config_default['mail_template_file'])
 
-def send_mail(mail_message: str) -> None:
+def send_mail(mail_subject: str, mail_message: str) -> None:
     """
     Module to send mail message
 
@@ -59,7 +62,7 @@ def send_mail(mail_message: str) -> None:
     receivers = [secrets.recipient]
 
     msg = MIMEText(mail_message)
-    msg['Subject'] = "Quote of the day"
+    msg['Subject'] = mail_subject
     msg['From'] = sender
     msg['To'] = ",".join(receivers)
 
@@ -69,32 +72,50 @@ def send_mail(mail_message: str) -> None:
     server.quit()
 
 
-def main():
-    # read file with quotes
-    with open(r'data/all_quotes.csv', newline='', encoding="utf8") as csvfile:
-        spamreader = csv.reader(csvfile, delimiter=';')
-        header = []
-        header = next(spamreader)
-        rows = []
-        for row in spamreader:
-            rows.append(row)
-        
-    # choose one random quote
-    number_of_quotes = len(rows)
-    value = random.randrange(0, number_of_quotes)
+def get_quotes() -> list:
+    """
+    Read csv file with all the quotes.
 
-    # build text
-    with open(r'data/mail_template.txt', newline='', encoding="utf8") as mail_template:
+    Return should be a 2-D list with following element order: quote, book, part, chapter
+
+    :param mail_message: text of the mail message
+    :returns: list
+    """
+    # read file with quotes
+    with open(quotes_file, newline='', encoding="utf8") as csv_file:
+        csv_reader = csv.reader(csv_file, delimiter=';')
+        all_rows = []
+        for one_row in csv_reader:
+            all_rows.append(one_row)
+
+    return all_rows
+
+
+def main():
+    """
+    Main method
+    """
+    # get all quotes in 2-D list
+    all_quotes = get_quotes()
+
+    # get random index
+    number_of_quotes = len(all_quotes)
+    quote_index = random.randrange(1, number_of_quotes)
+
+    # build mail message text
+    with open(template_file, newline='', encoding="utf8") as mail_template:
         template = mail_template.read()
-    
-    mail_message = template.format(rows[value][0], rows[value][1], rows[value][2], rows[value][3])
+    mail_message = template.format(all_quotes[quote_index][0], all_quotes[quote_index][1], all_quotes[quote_index][2], all_quotes[quote_index][3])
 
     # send mail with
-    send_mail(mail_message)
+    send_mail(mail_subject=config_default['mail_subject'], mail_message=mail_message)
+
 
 if __name__ == "__main__":
-    main()
-
-
-logger.info("Script ended")
-logger.info("####################")
+    try:
+        main()
+    except Exception as e:
+        logger.error(str(e))
+    finally:
+        logger.info("Script ended")
+        logger.info("####################")
